@@ -25,13 +25,13 @@ void push(Vector *v, int value)
 
 void push_front(Vector *v, int value)
 {
-    v->size++;
     if (v->size == v->capacity)
     {
         v->capacity *= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
         v->data = new_data;
     }
+    v->size++;
     memmove(v->data + 1, v->data, (v->size - 1) * sizeof(int));
     v->data[0] = value;
 }
@@ -41,6 +41,12 @@ int pop(Vector *v)
     v->size--;
     int result = v->data[v->size];
     v->data[v->size] = -1; // This is indicating that it is a garbage
+    if (v->size == (int)(v->capacity / 4))
+    {
+        v->capacity /= 2;
+        int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        v->data = new_data;
+    }
     return result;
 }
 
@@ -49,7 +55,14 @@ int pop_front(Vector *v)
     v->size--;
     int result = v->data[0];
     memmove(v->data, v->data + 1, v->size * sizeof(int));
+    if (v->size == (int)(v->capacity / 4))
+    {
+        v->capacity /= 2;
+        int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        v->data = new_data;
+    }
     return result;
+    // Here garbage indicator isn't necessary because the empty space before got filled.
 }
 
 int main(void)
@@ -62,6 +75,11 @@ int main(void)
     for (int i = 0; i < v.size; i++) {
         printf ("%d\n", v.data[i]);
     }
+
+    pop(&v);        // popped 3
+    pop_front(&v); // popped 1
+
+    printf("%d", v.data[v.size - 1]);  // prints 2
 
     return 0;
 }
