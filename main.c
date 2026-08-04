@@ -76,6 +76,18 @@ void insert(Vector *v, int pos, int value)
     v->data[pos - 1] = value;
 }
 
+void erase (Vector *v, int pos)
+{
+    memmove(v->data + pos - 1, v->data + pos, (v->size - pos) * sizeof(int));
+    v->size--;
+    if (v->size == v->capacity/4)
+    {
+        v->capacity /= 2;
+        int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        v->data = new_data;
+    }
+}
+
 int main(void)
 {
     Vector v = { .data = NULL, .size = 0, .capacity = 0};
@@ -92,6 +104,7 @@ int main(void)
 
     printf("%d\n", v.data[v.size - 1]);  // prints 2
     insert(&v, 2, 3);
+    erase(&v, 1);
     for (int i = 0; i < v.size; i++) {
         printf ("%d\n", v.data[i]);
     }
