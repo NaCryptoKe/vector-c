@@ -28,6 +28,7 @@ void push_front(Vector *v, int value)
     if (v->size == v->capacity)
     {
         v->capacity *= 2;
+        if (v->capacity == 0) v->capacity++;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
         v->data = new_data;
     }
@@ -63,11 +64,21 @@ int pop_front(Vector *v)
     return result;
 }
 
-void insert(Vector *v, int pos, int value)
+void insert(Vector *v, size_t pos, int value)
 {
+    // Check for a valid position input
+    if (pos < 1)
+    {
+        return;
+    }
+    if (pos > v->size)
+    {
+        return;
+    }
     if (v->size == v->capacity)
     {
         v->capacity *= 2;
+        if (v->capacity == 0) v->capacity++;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
         v->data = new_data;
     }
@@ -78,6 +89,14 @@ void insert(Vector *v, int pos, int value)
 
 void erase (Vector *v, int pos)
 {
+    if (pos < 1)
+    {
+        return;
+    }
+    if (pos > v->size)
+    {
+        return;
+    }
     memmove(v->data + pos - 1, v->data + pos, (v->size - pos) * sizeof(int));
     v->size--;
     if (v->size == v->capacity/4)
@@ -90,6 +109,14 @@ void erase (Vector *v, int pos)
 
 void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
 {
+    if (init_pos < 1 && end_pos < 1)
+    {
+        return;
+    }
+    if (init_pos > v->size && end_pos > v->size && init_pos > end_pos)
+    {
+        return;
+    }
     for (size_t i = init_pos - 1; i <= end_pos - 1; i++) {
         if (v->data[i] == old_value)
         {
@@ -104,6 +131,30 @@ void clear(Vector *v)
     v->data = NULL;
     v->capacity = 0;
     v->size = 0;
+}
+
+int search(Vector *v, int value)
+{
+    for (size_t i = 0; i < v->size; i++)
+    {
+        if (v->data[i] == value)
+        {
+            return i+1;
+        }
+    }
+    return -1;
+}
+
+int contains(Vector *v, int value)
+{
+    for (size_t i = 0; i < v->size; i++)
+    {
+        if (v->data[i] == value)
+        {
+            return 1;   // return true
+        }
+    }
+    return 0;       // return false
 }
 
 int main(void)
