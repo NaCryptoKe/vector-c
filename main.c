@@ -71,7 +71,7 @@ void insert(Vector *v, size_t pos, int value)
     {
         return;
     }
-    if (pos > v->size)
+    if (pos > v->size+1)
     {
         return;
     }
@@ -93,7 +93,7 @@ void erase (Vector *v, int pos)
     {
         return;
     }
-    if (pos > v->size)
+    if (pos > v->size+1)
     {
         return;
     }
@@ -113,7 +113,7 @@ void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_
     {
         return;
     }
-    if (init_pos > v->size && end_pos > v->size && init_pos > end_pos)
+    if (init_pos > v->size+1 && end_pos > v->size+1 && init_pos > end_pos)
     {
         return;
     }
