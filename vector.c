@@ -3,13 +3,25 @@
 #include <stdlib.h> // for realloc and free
 #include <string.h> // for memmove
 
+void vector_init(Vector *v)
+{
+    v->data = NULL;
+    v->size = 0;
+    v->capacity = 0;
+}
+
 void push(Vector *v, int value)
 {
     if (v->size == v->capacity)
     {
-        v->capacity *= 2;
         if (v->capacity == 0) v->capacity++;
+        v->capacity *= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)   // Failed to get memory
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
     v->data[v->size] = value;
@@ -20,9 +32,14 @@ void push_front(Vector *v, int value)
 {
     if (v->size == v->capacity)
     {
-        v->capacity *= 2;
         if (v->capacity == 0) v->capacity++;
+        v->capacity *= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
     v->size++;
@@ -34,10 +51,16 @@ int pop(Vector *v)
 {
     v->size--;
     int result = v->data[v->size];
+
     if (v->size == v->capacity / 4)
     {
         v->capacity /= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
     return result;
@@ -52,6 +75,11 @@ int pop_front(Vector *v)
     {
         v->capacity /= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
     return result;
@@ -59,58 +87,63 @@ int pop_front(Vector *v)
 
 void insert(Vector *v, size_t pos, int value)
 {
-    // Check for a valid position input
-    if (pos < 1)
+    if (pos < 0 &&
+        pos >= v->size)
     {
         return;
     }
-    if (pos > v->size+1)
-    {
-        return;
-    }
+
     if (v->size == v->capacity)
     {
-        v->capacity *= 2;
         if (v->capacity == 0) v->capacity++;
+        v->capacity *= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
     v->size++;
-    memmove(v->data + pos, v->data + pos - 1, (v->size - pos) * sizeof(int));
-    v->data[pos - 1] = value;
+    memmove(v->data + pos + 1, v->data + pos, (v->size - pos) * sizeof(int));
+    v->data[pos] = value;
 }
 
 void erase (Vector *v, size_t pos)
 {
-    if (pos < 1)
+    if (pos < 0 &&
+        pos >= v->size)
     {
         return;
     }
-    if (pos > v->size+1)
-    {
-        return;
-    }
-    memmove(v->data + pos - 1, v->data + pos, (v->size - pos) * sizeof(int));
+    memmove(v->data + pos, v->data + pos + 1, (v->size - pos) * sizeof(int));
     v->size--;
     if (v->size == v->capacity/4)
     {
         v->capacity /= 2;
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
         v->data = new_data;
     }
 }
 
 void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
 {
-    if (init_pos < 1 && end_pos < 1)
+    if (init_pos < 0 &&
+        end_pos < 0 &&
+        init_pos >= v->size &&
+        end_pos >= v->size &&
+        init_pos > end_pos)
     {
         return;
     }
-    if (init_pos > v->size+1 && end_pos > v->size+1 && init_pos > end_pos)
-    {
-        return;
-    }
-    for (size_t i = init_pos - 1; i <= end_pos - 1; i++) {
+
+    for (size_t i = init_pos; i <= end_pos; i++) {
         if (v->data[i] == old_value)
         {
             v->data[i] = new_value;
@@ -121,9 +154,7 @@ void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_
 void clear(Vector *v)
 {
     free(v->data);
-    v->data = NULL;
-    v->capacity = 0;
-    v->size = 0;
+    vector_init(v);
 }
 
 int search(Vector *v, int value)
@@ -132,7 +163,7 @@ int search(Vector *v, int value)
     {
         if (v->data[i] == value)
         {
-            return i+1;
+            return i;
         }
     }
     return -1;
@@ -140,12 +171,5 @@ int search(Vector *v, int value)
 
 int contains(Vector *v, int value)
 {
-    for (size_t i = 0; i < v->size; i++)
-    {
-        if (v->data[i] == value)
-        {
-            return 1;   // return true
-        }
-    }
-    return 0;       // return false
+    return search(v, value) != -1;
 }
