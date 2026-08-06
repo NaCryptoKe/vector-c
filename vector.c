@@ -60,6 +60,10 @@ int pop(Vector *v)
     if (v->size == v->capacity / 4)
     {
         v->capacity /= 2;
+        if (v->capacity == 0) {
+            v->capacity = 1;
+            return result;
+        }
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
         if (new_data == NULL)
         {
@@ -83,6 +87,10 @@ int pop_front(Vector *v)
     if (v->size == v->capacity / 4)
     {
         v->capacity /= 2;
+        if (v->capacity == 0) {
+            v->capacity = 1;
+            return result;
+        }
         int *new_data = realloc(v->data, v->capacity * sizeof(int));
         if (new_data == NULL)
         {
@@ -96,7 +104,7 @@ int pop_front(Vector *v)
 
 void insert(Vector *v, size_t pos, int value)
 {
-    if (pos >= v->size)
+    if (pos > v->size)
     {
         return;
     }
@@ -114,17 +122,17 @@ void insert(Vector *v, size_t pos, int value)
         v->data = new_data;
     }
     v->size++;
-    memmove(v->data + pos + 1, v->data + pos, (v->size - pos) * sizeof(int));
+    memmove(v->data + pos + 1, v->data + pos, (v->size - pos + 1) * sizeof(int));
     v->data[pos] = value;
 }
 
 void erase (Vector *v, size_t pos)
 {
-    if (pos >= v->size)
+    if (pos > v->size)
     {
         return;
     }
-    memmove(v->data + pos, v->data + pos + 1, (v->size - pos) * sizeof(int));
+    memmove(v->data + pos, v->data + pos + 1, (v->size - pos + 1) * sizeof(int));
     v->size--;
     if (v->size == v->capacity/4)
     {
@@ -141,8 +149,8 @@ void erase (Vector *v, size_t pos)
 
 void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
 {
-    if (init_pos >= v->size &&
-        end_pos >= v->size &&
+    if (init_pos > v->size ||
+        end_pos > v->size ||
         init_pos > end_pos)
     {
         return;
