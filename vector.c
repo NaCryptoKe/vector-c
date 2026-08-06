@@ -1,4 +1,5 @@
 #include "vector.h"
+#include <stdio.h>
 
 #include <stdlib.h> // for realloc and free
 #include <string.h> // for memmove
@@ -49,6 +50,10 @@ void push_front(Vector *v, int value)
 
 int pop(Vector *v)
 {
+    if (v->size == 0)
+    {
+        return -1;  //placeholder for now
+    }
     v->size--;
     int result = v->data[v->size];
 
@@ -68,6 +73,10 @@ int pop(Vector *v)
 
 int pop_front(Vector *v)
 {
+    if (v->size == 0)
+    {
+        return -1;  //placeholder for now
+    }
     v->size--;
     int result = v->data[0];
     memmove(v->data, v->data + 1, v->size * sizeof(int));
@@ -87,8 +96,7 @@ int pop_front(Vector *v)
 
 void insert(Vector *v, size_t pos, int value)
 {
-    if (pos < 0 &&
-        pos >= v->size)
+    if (pos >= v->size)
     {
         return;
     }
@@ -112,8 +120,7 @@ void insert(Vector *v, size_t pos, int value)
 
 void erase (Vector *v, size_t pos)
 {
-    if (pos < 0 &&
-        pos >= v->size)
+    if (pos >= v->size)
     {
         return;
     }
@@ -134,9 +141,7 @@ void erase (Vector *v, size_t pos)
 
 void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
 {
-    if (init_pos < 0 &&
-        end_pos < 0 &&
-        init_pos >= v->size &&
+    if (init_pos >= v->size &&
         end_pos >= v->size &&
         init_pos > end_pos)
     {
@@ -157,7 +162,7 @@ void clear(Vector *v)
     vector_init(v);
 }
 
-int search(Vector *v, int value)
+size_t search(Vector *v, int value)
 {
     for (size_t i = 0; i < v->size; i++)
     {

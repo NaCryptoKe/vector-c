@@ -10,6 +10,8 @@ typedef struct
     size_t capacity;    // how much it can store
 } Vector;
 
+void vector_init(Vector *vec);
+
 void push(Vector *vec, int value);
 void push_front(Vector *vec, int value);
 
@@ -20,7 +22,7 @@ void insert(Vector *vec, size_t pos, int value);
 void erase(Vector *vec, size_t pos);
 void replace(Vector *vec, size_t init_pos, size_t end_pos, int old_value, int new_value);
 
-int search(Vector *vec, int value);
+size_t search(Vector *vec, int value);
 int contains(Vector *vec, int value);
 
 void clear(Vector *vec);
