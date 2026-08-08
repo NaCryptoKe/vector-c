@@ -115,52 +115,55 @@ int vector_pop_front(Vector *vec, void *out)
     }
     return 1;
 }
+
+void vector_insert(Vector *vec, size_t pos, const void *value_ptr)
+{
+    LOG("Vector Insert\n");
+    if (pos > vec->size)
+    {
+        return;
+    }
+
+    if (vec->size >= vec->capacity)
+    {
+        if (vec->capacity == 0) 
+            vec->capacity++;
+
+        vec->capacity *= 2;
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+    }
+    vec->size++;
+    memmove(vec->data + (pos * vec->elem_size) + vec->elem_size, vec->data + (pos * vec->elem_size), (vec->size - pos - 1) * vec->elem_size);
+    memcpy(vec->data + (pos * vec->elem_size), value_ptr, vec->elem_size);
+}
+
+void vector_erase(Vector *vec, size_t pos)
+{
+    if (pos >= vec->size)
+    {
+        return;
+    }
+    memmove(vec->data + (pos * vec->elem_size), vec->data + (pos * vec->elem_size) + vec->elem_size, (vec->size - pos - 1) * vec->elem_size);
+    vec->size--;
+    if (vec->size <= vec->capacity/4 && vec->capacity > 4)
+    {
+        vec->capacity /= 2;
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+    }
+}
 /*
-void insert(Vector *v, size_t pos, int value)
-{
-    if (pos > v->size)
-    {
-        return;
-    }
-
-    if (v->size == v->capacity)
-    {
-        if (v->capacity == 0) v->capacity++;
-        v->capacity *= 2;
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
-        if (new_data == NULL)
-        {
-            fprintf(stderr, "Fatal: Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
-        v->data = new_data;
-    }
-    v->size++;
-    memmove(v->data + pos + 1, v->data + pos, (v->size - pos + 1) * sizeof(int));
-    v->data[pos] = value;
-}
-
-void erase (Vector *v, size_t pos)
-{
-    if (pos > v->size)
-    {
-        return;
-    }
-    memmove(v->data + pos, v->data + pos + 1, (v->size - pos + 1) * sizeof(int));
-    v->size--;
-    if (v->size == v->capacity/4)
-    {
-        v->capacity /= 2;
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
-        if (new_data == NULL)
-        {
-            fprintf(stderr, "Fatal: Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
-        v->data = new_data;
-    }
-}
-
 void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
 {
     if (init_pos > v->size ||
