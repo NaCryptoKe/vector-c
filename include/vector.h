@@ -8,6 +8,7 @@ typedef struct
     int* data;
     size_t size;        // actual size of the vector
     size_t capacity;    // how much it can store
+    size_t elem_size;   // the data type's size
 } Vector;
 
 void vector_init(Vector *vec);

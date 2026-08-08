@@ -1,4 +1,4 @@
-#include "vector.h"
+#include "../include/vector.h"
 #include <stdio.h>
 
 #include <stdlib.h> // for realloc and free
@@ -9,6 +9,7 @@ void vector_init(Vector *v)
     v->data = NULL;
     v->size = 0;
     v->capacity = 0;
+    v->elem_size = 0;
 }
 
 void push(Vector *v, int value)
@@ -184,5 +185,5 @@ size_t search(Vector *v, int value)
 
 int contains(Vector *v, int value)
 {
-    return search(v, value) != -1;
+    return search(v, value) != (size_t)-1;
 }
