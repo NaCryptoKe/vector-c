@@ -1,35 +1,47 @@
 #include "../include/vector.h"
+#include "../include/logger.h"
 #include <stdio.h>
 
 #include <stdlib.h> // for realloc and free
 #include <string.h> // for memmove
 
-void vector_init(Vector *v)
+Vector* vector_init(size_t elem_size)
 {
-    v->data = NULL;
-    v->size = 0;
-    v->capacity = 0;
-    v->elem_size = 0;
+    Vector* vec = (Vector *)malloc(sizeof(Vector));
+    vec->capacity = 4;  // default starting point
+    vec->size = 0;
+    vec->elem_size = elem_size;
+    vec->data = malloc(vec->capacity * vec->elem_size);
+
+    // Logging info
+    PRINT("%zu", vec->capacity);
+    PRINT("%zu", vec->size);
+    PRINT("%zu", vec->elem_size);
+
+    return vec;
 }
 
-void push(Vector *v, int value)
+
+void vector_push_back(Vector *vec, const void *value_ptr)
 {
-    if (v->size == v->capacity)
-    {
-        if (v->capacity == 0) v->capacity++;
-        v->capacity *= 2;
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
+    if (vec->size >= vec->capacity)
+    {        
+        vec->capacity *= 2;
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)   // Failed to get memory
         {
             fprintf(stderr, "Fatal: Out of memory\n");
             exit(EXIT_FAILURE);
         }
-        v->data = new_data;
+        vec->data = new_data;
     }
-    v->data[v->size] = value;
-    v->size++;
-}
 
+    char *target_address = (char *)vec->data + (vec->size * vec->elem_size);
+    memcpy(target_address, value_ptr, vec->elem_size); // dereferences the target_address and changes the value of data
+    vec->size++;
+    
+}
+/*
 void push_front(Vector *v, int value)
 {
     if (v->size == v->capacity)
@@ -187,3 +199,4 @@ int contains(Vector *v, int value)
 {
     return search(v, value) != (size_t)-1;
 }
+*/

@@ -5,15 +5,15 @@
 
 typedef struct
 {
-    int* data;
+    void *data;         // Raw block of generic memory
     size_t size;        // actual size of the vector
     size_t capacity;    // how much it can store
     size_t elem_size;   // the data type's size
 } Vector;
 
-void vector_init(Vector *vec);
+Vector* vector_init(size_t elem_size);
 
-void push(Vector *vec, int value);
+void vector_push_back(Vector *vec, const void *value_ptr);
 void push_front(Vector *vec, int value);
 
 int pop(Vector *vec);
