@@ -24,6 +24,8 @@ Vector* vector_init(size_t elem_size)
 void vector_push_back(Vector *vec, const void *value_ptr)
 {
     LOG("Push Back\n");
+    if (vec->capacity < 4)
+        vec->capacity = 4;
     if (vec->size >= vec->capacity)
     {        
         vec->capacity *= 2;
@@ -45,6 +47,8 @@ void vector_push_back(Vector *vec, const void *value_ptr)
 void vector_push_front(Vector *vec, const void *value_ptr)
 {
     LOG("Push Front\n");
+    if (vec->capacity < 4)
+        vec->capacity = 4;
     if (vec->size >= vec->capacity)
     {
         vec->capacity *= 2;
@@ -123,6 +127,9 @@ void vector_insert(Vector *vec, size_t pos, const void *value_ptr)
     {
         return;
     }
+
+    if (vec->capacity < 4)
+        vec->capacity = 4;
 
     if (vec->size >= vec->capacity)
     {
