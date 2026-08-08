@@ -163,30 +163,26 @@ void vector_erase(Vector *vec, size_t pos)
         vec->data = new_data;
     }
 }
-/*
-void replace(Vector *v, size_t init_pos, size_t end_pos, int old_value, int new_value)
+
+void vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_value_ptr, void *new_value_ptr)
 {
-    if (init_pos > v->size ||
-        end_pos > v->size ||
+    LOG("Vector Replace\n");
+    if (init_pos >= vec->size ||
+        end_pos >= vec->size ||
         init_pos > end_pos)
     {
         return;
     }
 
     for (size_t i = init_pos; i <= end_pos; i++) {
-        if (v->data[i] == old_value)
+        if (!memcmp(vec->data + (i * vec->elem_size), old_value_ptr, vec->elem_size))
         {
-            v->data[i] = new_value;
+            memcpy(vec->data + (i * vec->elem_size), new_value_ptr, vec->elem_size);
         }
     }
 }
 
-void clear(Vector *v)
-{
-    free(v->data);
-    vector_init(v);
-}
-
+/*
 size_t search(Vector *v, int value)
 {
     for (size_t i = 0; i < v->size; i++)
@@ -204,3 +200,19 @@ int contains(Vector *v, int value)
     return search(v, value) != (size_t)-1;
 }
 */
+
+void vector_clear(Vector *vec)
+{
+    LOG("Vector Clear\n");
+    free(vec->data);
+    vec->data = NULL;
+    vec->capacity = 0;
+    vec->size = 0;
+}
+
+void vector_destroy(Vector *vec)
+{
+    LOG("Vector Destroyed\n");
+    free(vec->data);
+    free(vec);
+}

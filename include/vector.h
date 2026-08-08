@@ -21,11 +21,12 @@ int vector_pop_front(Vector *vec, void *out);
 
 void vector_insert(Vector *vec, size_t pos, const void *value_ptr);
 void vector_erase(Vector *vec, size_t pos);
-void replace(Vector *vec, size_t init_pos, size_t end_pos, int old_value, int new_value);
+void vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_value_ptr, void *new_value_ptr);
 
 size_t search(Vector *vec, int value);
 int contains(Vector *vec, int value);
 
-void clear(Vector *vec);
+void vector_clear(Vector *vec);
+void vector_destroy(Vector *vec);
 
 #endif // VECTOR_H
