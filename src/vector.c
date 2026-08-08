@@ -24,11 +24,10 @@ Vector* vector_init(size_t elem_size)
 void vector_push_back(Vector *vec, const void *value_ptr)
 {
     LOG("Push Back\n");
-    if (vec->capacity < 4)
-        vec->capacity = 4;
+    
     if (vec->size >= vec->capacity)
     {        
-        vec->capacity *= 2;
+        vec->capacity = vec->capacity ? vec->capacity * 2 : 4;
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)   // Failed to get memory
         {
@@ -47,11 +46,10 @@ void vector_push_back(Vector *vec, const void *value_ptr)
 void vector_push_front(Vector *vec, const void *value_ptr)
 {
     LOG("Push Front\n");
-    if (vec->capacity < 4)
-        vec->capacity = 4;
+    
     if (vec->size >= vec->capacity)
     {
-        vec->capacity *= 2;
+        vec->capacity = vec->capacity ? vec->capacity * 2 : 4;
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)
         {
@@ -128,15 +126,9 @@ void vector_insert(Vector *vec, size_t pos, const void *value_ptr)
         return;
     }
 
-    if (vec->capacity < 4)
-        vec->capacity = 4;
-
     if (vec->size >= vec->capacity)
     {
-        if (vec->capacity == 0) 
-            vec->capacity++;
-
-        vec->capacity *= 2;
+        vec->capacity = vec->capacity ? vec->capacity * 2 : 4;
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)
         {
