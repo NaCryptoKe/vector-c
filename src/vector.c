@@ -175,19 +175,19 @@ void vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_valu
     }
 
     for (size_t i = init_pos; i <= end_pos; i++) {
-        if (!memcmp(vec->data + (i * vec->elem_size), old_value_ptr, vec->elem_size))
+        if (memcmp(vec->data + (i * vec->elem_size), old_value_ptr, vec->elem_size) == 0)
         {
             memcpy(vec->data + (i * vec->elem_size), new_value_ptr, vec->elem_size);
         }
     }
 }
 
-/*
-size_t search(Vector *v, int value)
+
+size_t vector_search(Vector *vec, void *value_ptr)
 {
-    for (size_t i = 0; i < v->size; i++)
+    for (size_t i = 0; i < vec->size; i++)
     {
-        if (v->data[i] == value)
+        if (memcmp(vec->data + (i * vec->elem_size), value_ptr, vec->elem_size) == 0)
         {
             return i;
         }
@@ -195,11 +195,11 @@ size_t search(Vector *v, int value)
     return -1;
 }
 
-int contains(Vector *v, int value)
+int vector_contains(Vector *vec, void *value_ptr)
 {
-    return search(v, value) != (size_t)-1;
+    return vector_search(vec, value_ptr) != -1;
 }
-*/
+
 
 void vector_clear(Vector *vec)
 {

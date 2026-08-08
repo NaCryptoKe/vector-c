@@ -31,11 +31,18 @@ int main(void)
     vector_replace(int_vec, 0, 3, &val2, &val4);
     printf("--- %zu ---\n", int_vec->size);
     size_t size = int_vec->size;
+    int pos = (int)vector_search(int_vec, &val4);
+    int contain = vector_contains(int_vec, &val4);
+
+    printf("Index: %d, contain: %d\n", pos, contain);
     for (size_t i = 0; i < size; i++)
     {
         vector_pop_back(int_vec, &val3);
         printf("i = %zu - %d\n", i, val3);
     }
+    pos = (int)vector_search(int_vec, &val4);
+    contain = vector_contains(int_vec, &val4);
+    printf("Index: %d, contain: %d\n", pos, contain);
 
     vector_clear(int_vec);
     vector_destroy(int_vec);
