@@ -72,7 +72,7 @@ int vector_pop_back(Vector *vec, void *out)
     }
 
     vec->size--;
-    memcpy(out, vec->data + (vec ->size * vec->elem_size), vec->elem_size);
+    memcpy(out, (char *)vec->data + (vec ->size * vec->elem_size), vec->elem_size);
     
     if (vec->size <= vec->capacity / 4 && vec->capacity > 4)
     {
@@ -138,8 +138,8 @@ void vector_insert(Vector *vec, size_t pos, const void *value_ptr)
         vec->data = new_data;
     }
     vec->size++;
-    memmove(vec->data + (pos * vec->elem_size) + vec->elem_size, vec->data + (pos * vec->elem_size), (vec->size - pos - 1) * vec->elem_size);
-    memcpy(vec->data + (pos * vec->elem_size), value_ptr, vec->elem_size);
+    memmove((char *)vec->data + (pos * vec->elem_size) + vec->elem_size, (char *)vec->data + (pos * vec->elem_size), (vec->size - pos - 1) * vec->elem_size);
+    memcpy((char *)vec->data + (pos * vec->elem_size), value_ptr, vec->elem_size);
 }
 
 void vector_erase(Vector *vec, size_t pos)
@@ -148,7 +148,7 @@ void vector_erase(Vector *vec, size_t pos)
     {
         return;
     }
-    memmove(vec->data + (pos * vec->elem_size), vec->data + (pos * vec->elem_size) + vec->elem_size, (vec->size - pos - 1) * vec->elem_size);
+    memmove((char *)vec->data + (pos * vec->elem_size), (char *)vec->data + (pos * vec->elem_size) + vec->elem_size, (vec->size - pos - 1) * vec->elem_size);
     vec->size--;
     if (vec->size <= vec->capacity/4 && vec->capacity > 4)
     {
@@ -174,9 +174,9 @@ void vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_valu
     }
 
     for (size_t i = init_pos; i <= end_pos; i++) {
-        if (memcmp(vec->data + (i * vec->elem_size), old_value_ptr, vec->elem_size) == 0)
+        if (memcmp((char *)vec->data + (i * vec->elem_size), old_value_ptr, vec->elem_size) == 0)
         {
-            memcpy(vec->data + (i * vec->elem_size), new_value_ptr, vec->elem_size);
+            memcpy((char *)vec->data + (i * vec->elem_size), new_value_ptr, vec->elem_size);
         }
     }
 }
@@ -187,7 +187,7 @@ void vector_get(Vector *vec, size_t pos, void *out)
     if (pos >= vec->size)
         return;
     
-    memcpy(out, vec->data + (pos * vec->elem_size), vec->elem_size);
+    memcpy(out, (char *)vec->data + (pos * vec->elem_size), vec->elem_size);
 }
 
 size_t vector_search(Vector *vec, void *value_ptr)
@@ -195,7 +195,7 @@ size_t vector_search(Vector *vec, void *value_ptr)
     LOG("Vector Search\n");
     for (size_t i = 0; i < vec->size; i++)
     {
-        if (memcmp(vec->data + (i * vec->elem_size), value_ptr, vec->elem_size) == 0)
+        if (memcmp((char *)vec->data + (i * vec->elem_size), value_ptr, vec->elem_size) == 0)
         {
             return i;
         }
