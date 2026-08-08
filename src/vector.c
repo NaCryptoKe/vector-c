@@ -21,9 +21,9 @@ Vector* vector_init(size_t elem_size)
     return vec;
 }
 
-
 void vector_push_back(Vector *vec, const void *value_ptr)
 {
+    LOG("Push Back\n");
     if (vec->size >= vec->capacity)
     {        
         vec->capacity *= 2;
@@ -41,80 +41,81 @@ void vector_push_back(Vector *vec, const void *value_ptr)
     vec->size++;
     
 }
+
+void vector_push_front(Vector *vec, const void *value_ptr)
+{
+    LOG("Push Front\n");
+    if (vec->size >= vec->capacity)
+    {
+        vec->capacity *= 2;
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+    }
+    vec->size++;
+    memmove((char *)vec->data + vec->elem_size, (char *)vec->data, (vec->size - 1) * vec->elem_size);
+    memcpy(vec->data, value_ptr, vec->elem_size);
+}
+
+int vector_pop_back(Vector *vec, void *out)
+{
+    LOG("Pop Back\n");
+    if (vec->size == 0)
+    {
+        return -1;  //placeholder for now
+    }
+
+    vec->size--;
+    memcpy(out, vec->data + (vec ->size * vec->elem_size), vec->elem_size);
+    
+    if (vec->size <= vec->capacity / 4 && vec->capacity > 4)
+    {
+        vec->capacity /= 2;
+        if (vec->capacity < 4)
+            vec->capacity = 4;
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+    }
+    return 1;
+}
+
+int vector_pop_front(Vector *vec, void *out)
+{
+    LOG("Pop Front\n");
+    if (vec->size == 0)
+    {
+        return -1;  //placeholder for now
+    }
+
+    vec->size--;
+    memcpy(out, vec->data, vec->elem_size);
+    memmove((char *)vec->data, (char *)vec->data + vec->elem_size, vec->size * vec->elem_size);
+
+    if (vec->size <= vec->capacity / 4 && vec->capacity > 4)
+    {
+        vec->capacity /= 2;
+        if (vec->capacity <= 4)
+            vec->capacity = 4;
+        void *new_data = realloc(vec->data, vec->capacity * vec ->elem_size);
+        if (new_data == NULL)
+        {
+            fprintf(stderr, "Fatal: Out of memory\n");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+    }
+    return 1;
+}
 /*
-void push_front(Vector *v, int value)
-{
-    if (v->size == v->capacity)
-    {
-        if (v->capacity == 0) v->capacity++;
-        v->capacity *= 2;
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
-        if (new_data == NULL)
-        {
-            fprintf(stderr, "Fatal: Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
-        v->data = new_data;
-    }
-    v->size++;
-    memmove(v->data + 1, v->data, (v->size - 1) * sizeof(int));
-    v->data[0] = value;
-}
-
-int pop(Vector *v)
-{
-    if (v->size == 0)
-    {
-        return -1;  //placeholder for now
-    }
-    v->size--;
-    int result = v->data[v->size];
-
-    if (v->size == v->capacity / 4)
-    {
-        v->capacity /= 2;
-        if (v->capacity == 0) {
-            v->capacity = 1;
-            return result;
-        }
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
-        if (new_data == NULL)
-        {
-            fprintf(stderr, "Fatal: Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
-        v->data = new_data;
-    }
-    return result;
-}
-
-int pop_front(Vector *v)
-{
-    if (v->size == 0)
-    {
-        return -1;  //placeholder for now
-    }
-    v->size--;
-    int result = v->data[0];
-    memmove(v->data, v->data + 1, v->size * sizeof(int));
-    if (v->size == v->capacity / 4)
-    {
-        v->capacity /= 2;
-        if (v->capacity == 0) {
-            v->capacity = 1;
-            return result;
-        }
-        int *new_data = realloc(v->data, v->capacity * sizeof(int));
-        if (new_data == NULL)
-        {
-            fprintf(stderr, "Fatal: Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
-        v->data = new_data;
-    }
-    return result;
-}
-
 void insert(Vector *v, size_t pos, int value)
 {
     if (pos > v->size)

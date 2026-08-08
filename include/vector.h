@@ -14,10 +14,10 @@ typedef struct
 Vector* vector_init(size_t elem_size);
 
 void vector_push_back(Vector *vec, const void *value_ptr);
-void push_front(Vector *vec, int value);
+void vector_push_front(Vector *vec, const void *value_ptr);
 
-int pop(Vector *vec);
-int pop_front(Vector *vec);
+int vector_pop_back(Vector *vec, void *out);
+int vector_pop_front(Vector *vec, void *out);
 
 void insert(Vector *vec, size_t pos, int value);
 void erase(Vector *vec, size_t pos);
