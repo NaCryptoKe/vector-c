@@ -24,32 +24,74 @@ typedef enum
     VEC_INVALID_SIZE        = -8
 } VectorStatus;
 
+
 typedef struct
 {
-    void *data;         // Raw block of generic memory
-    size_t size;        // actual size of the vector
-    size_t capacity;    // how much it can store
-    size_t elem_size;   // the data type's size
+    void *data;
+    size_t size;
+    size_t capacity;
+    size_t elem_size;
 } Vector;
 
-Vector* vector_init(const size_t elem_size);
+Vector *vector_init(size_t elem_size);
 
-VectorStatus vector_push_back(Vector *vec, const void *value_ptr);
-VectorStatus vector_push_front(Vector *vec, const void *value_ptr);
+VectorStatus vector_push_back(
+    Vector *vec,
+    const void *value_ptr
+);
 
-VectorStatus vector_pop_back(Vector *vec, void *out);
-VectorStatus vector_pop_front(Vector *vec, void *out);
+VectorStatus vector_push_front(
+    Vector *vec,
+    const void *value_ptr
+);
 
-VectorStatus vector_insert(Vector *vec, size_t pos, const void *value_ptr);
-VectorStatus vector_erase(Vector *vec, size_t pos);
-VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, 
-                            void *old_value_ptr, void *new_value_ptr);
-VectorStatus vector_get(Vector *vec, size_t pos, void *out);
+VectorStatus vector_pop_back(
+    Vector *vec,
+    void *out
+);
 
-ssize_t vector_search(Vector *vec, void *value_ptr);
-VectorStatus vector_contains(Vector *vec, void *value_ptr);
+VectorStatus vector_pop_front(
+    Vector *vec,
+    void *out
+);
+
+VectorStatus vector_insert(
+    Vector *vec,
+    size_t pos,
+    const void *value_ptr
+);
+
+VectorStatus vector_erase(
+    Vector *vec,
+    size_t pos
+);
+
+VectorStatus vector_replace(
+    Vector *vec,
+    size_t init_pos,
+    size_t end_pos,
+    const void *old_value_ptr,
+    const void *new_value_ptr
+);
+
+VectorStatus vector_get(
+    const Vector *vec,
+    size_t pos,
+    void *out
+);
+
+ssize_t vector_search(
+    const Vector *vec,
+    const void *value_ptr
+);
+
+VectorStatus vector_contains(
+    const Vector *vec,
+    const void *value_ptr
+);
 
 VectorStatus vector_clear(Vector *vec);
+
 VectorStatus vector_destroy(Vector *vec);
 
 #endif // VECTOR_H
