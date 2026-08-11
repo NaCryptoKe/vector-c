@@ -1,5 +1,5 @@
-#include "../include/vector.h"
-#include "../include/logger.h"
+#include "vector.h"
+#include "logger.h"
 
 #include <stdarg.h>
 #include <stdint.h>
