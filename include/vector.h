@@ -3,6 +3,14 @@
 
 #include <stddef.h> // for size_t
 
+#if defined(_MSC_VER) && !defined(__clang__)
+// Windows MSVC alternative
+typedef ptrdiff_t ssize_t; 
+#elif defined(__unix__) || defined(__APPLE__)
+// POSIX systems already define ssize_t in <sys/types.h>
+#include <sys/types.h>
+#endif
+
 typedef enum 
 {
     VEC_OK                  =  0,
@@ -34,10 +42,11 @@ VectorStatus vector_pop_front(Vector *vec, void *out);
 
 VectorStatus vector_insert(Vector *vec, size_t pos, const void *value_ptr);
 VectorStatus vector_erase(Vector *vec, size_t pos);
-VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_value_ptr, void *new_value_ptr);
+VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, 
+                            void *old_value_ptr, void *new_value_ptr);
 VectorStatus vector_get(Vector *vec, size_t pos, void *out);
 
-size_t vector_search(Vector *vec, void *value_ptr);
+ssize_t vector_search(Vector *vec, void *value_ptr);
 VectorStatus vector_contains(Vector *vec, void *value_ptr);
 
 VectorStatus vector_clear(Vector *vec);

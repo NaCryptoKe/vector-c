@@ -4,7 +4,6 @@ CFLAGS = -Wall -Wextra -Wpointer-arith -std=c11
 .PHONY: all clean
 
 all: app
-	bin/$<
 
 main.o: include/vector.h
 vector.o: include/vector.h

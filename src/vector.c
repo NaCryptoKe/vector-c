@@ -4,41 +4,48 @@
 
 #include <stdlib.h> // for realloc and free
 #include <string.h> // for memmove
+#include <stdarg.h> // for variadic function
 
-VectorStatus vector_init_check(const size_t elem_size)
+VectorStatus vector_input_check(size_t count, ...)
 {
-    if (elem_size == 0)
-        return VEC_INVALID_SIZE;
-    
-    return VEC_OK;
-}
+    va_list args;
+    va_start(args, count);
 
-VectorStatus check(void *vec, void *value_ptr)
-{
-    if (vec == NULL || value_ptr == NULL)
-        return VEC_ERR_NULL_ARG;
-    
-    return VEC_OK;
+    VectorStatus status = VEC_OK;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        if (va_arg(args, void*) == NULL)
+        {
+            status = VEC_ERR_NULL_ARG;
+        }
+    }
+
+    va_end(args);
+    return status;
 }
 
 Vector* vector_init(const size_t elem_size)
 {
-    if (vector_init_check(elem_size) != VEC_OK)
-        return NULL;
+    if (elem_size == 0) return NULL;
+
+    // Initialize the vector
     Vector* vec = (Vector *)malloc(sizeof(Vector));
-    
-    // Just placeholder till I make check varaiadic.
-    int value = 42;
 
-    if (check(vec, &value) != VEC_OK)
+    // Checking if input element size is valid
+    if (vector_input_check(1, vec) != VEC_OK)
+    {
+        free(vec);
         return NULL;
+    }
 
-    vec->capacity = 4;  // default starting point
+    // default starting point
+    vec->capacity = 4;
     vec->size = 0;
     vec->elem_size = elem_size;
 
     vec->data = malloc(vec->capacity * vec->elem_size);
-    if (check(vec->data, &value) != VEC_OK)
+    if (vector_input_check(1, vec->data) != VEC_OK)
     {
         free(vec);
         return NULL;
@@ -49,91 +56,94 @@ Vector* vector_init(const size_t elem_size)
 
 VectorStatus vector_push_back(Vector *vec, const void *value_ptr)
 {
-    LOG("Push Back\n");
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(1, value_ptr);
+    if (status != VEC_OK) return status;
 
-    if (vec == NULL || value_ptr == NULL)
-        return VEC_ERR_NULL_ARG;
-    
+    // If size has reached capacity, increase
     if (vec->size >= vec->capacity)
-    {        
+    {
         vec->capacity = vec->capacity ? vec->capacity * 2 : 4;
-        void *new_data = realloc(
-                                vec->data, 
-                                vec->capacity * vec->elem_size
-                            );
+
+        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+
         if (new_data == NULL)   // Failed to get memory
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
             return VEC_ERR_ALLOC;
         }
+
         vec->data = new_data;
     }
 
-    char *target_address = (char *)vec->data + (vec->size * vec->elem_size);
-    memcpy(target_address, value_ptr, vec->elem_size); // dereferences the target_address and changes the value of data
-    vec->size++;
+    char *target_address = (char *)vec->data + (vec->size++ * vec->elem_size);
+    memcpy(target_address, value_ptr, vec->elem_size);
 
-    return VEC_OK;    
+    return VEC_OK;
 }
 
 VectorStatus vector_push_front(Vector *vec, const void *value_ptr)
 {
-    LOG("Push Front\n");
-    
-    if (vec == NULL || value_ptr == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, value_ptr);
+    if (status != VEC_OK) return status;
 
+    // If size has reached capacity, increase
     if (vec->size >= vec->capacity)
     {
         vec->capacity = vec->capacity ? vec->capacity * 2 : 4;
+
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+
         if (new_data == NULL)
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
             return VEC_ERR_ALLOC;
         }
+
         vec->data = new_data;
     }
-    vec->size++;
-    memmove(
-        (char *)vec->data + vec->elem_size, 
-        (char *)vec->data, 
-        (vec->size - 1) * vec->elem_size
-    );
-    memcpy(vec->data, value_ptr, vec->elem_size);
+
+    char *dest_address = (char *)vec->data + (vec->elem_size);
+    char *src_address = (char *)vec->data;
+    
+    // Moving memory and putting data to the index 0 position
+    memmove(dest_address, src_address, vec->size++ * vec->elem_size);
+    memcpy(src_address, value_ptr, vec->elem_size);
 
     return VEC_OK;
 }
 
 VectorStatus vector_pop_back(Vector *vec, void *out)
 {
-    LOG("Pop Back\n");
-    if (vec == NULL || out == NULL)
-        return VEC_ERR_NULL_ARG;
-        
-    if (vec->size == 0)
-        return VEC_ERR_EMPTY_VECTOR;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, out);
+    if (status != VEC_OK) return status;
 
-    vec->size--;
-    memcpy(
-        out,
-        (char *)vec->data + (vec ->size * vec->elem_size),
-        vec->elem_size
-    );
+    if (vec->size == 0) return VEC_ERR_EMPTY_VECTOR;
+
+    char *target_address = (char *)vec->data + (--vec->size * vec->elem_size);
+    memcpy(out, target_address, vec->elem_size);
     
+    // If size has reached capacity's quarter
+    // and capacity hasn't went below initial value 4, decrease
     if (
-        vec->size <= vec->capacity / 4 && 
+        vec->size <= vec->capacity / 4 &&
         vec->capacity > 4
     )
     {
-        vec->capacity /= 2;
-        void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
+        size_t new_capacity = vec->capacity / 2;
+
+        void *new_data = realloc(vec->data, new_capacity * vec->elem_size);
+        
         if (new_data == NULL)
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
+            vec->size++;
             return VEC_ERR_ALLOC;
         }
         vec->data = new_data;
+        vec->capacity = new_capacity;
     }
 
     return VEC_OK;
@@ -141,50 +151,67 @@ VectorStatus vector_pop_back(Vector *vec, void *out)
 
 VectorStatus vector_pop_front(Vector *vec, void *out)
 {
-    LOG("Pop Front\n");
-    if (vec == NULL || out == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, out);
+    if (status != VEC_OK)
+        return status;
 
     if (vec->size == 0)
         return VEC_ERR_EMPTY_VECTOR;
 
+    char *data = (char *)vec->data;
+
+    // Copy the first element to out
+    memcpy(out, data, vec->elem_size);
+
+    // Remove the first element logically
     vec->size--;
-    memcpy(
-        out, 
-        vec->data, 
-        vec->elem_size
-    );
+
+    // Shift remaining elements one position to the left
     memmove(
-        (char *)vec->data, 
-        (char *)vec->data + vec->elem_size, 
+        data,
+        data + vec->elem_size,
         vec->size * vec->elem_size
     );
 
+    // If size has reached capacity's quarter
+    // and capacity hasn't gone below initial value 4, decrease
     if (
-        vec->size <= vec->capacity / 4 && 
+        vec->size <= vec->capacity / 4 &&
         vec->capacity > 4
     )
     {
-        vec->capacity /= 2;
-        void *new_data = realloc(vec->data, vec->capacity * vec ->elem_size);
+        size_t new_capacity = vec->capacity / 2;
+
+        void *new_data = realloc( vec->data, new_capacity * vec->elem_size);
+
         if (new_data == NULL)
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
+            vec->size++;
             return VEC_ERR_ALLOC;
         }
+
         vec->data = new_data;
+        vec->capacity = new_capacity;
     }
+
     return VEC_OK;
 }
 
 VectorStatus vector_insert(Vector *vec, size_t pos, const void *value_ptr)
 {
-    LOG("Vector Insert\n");
-    if (vec == NULL || value_ptr == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, value_ptr);
+    if (status != VEC_OK) return status;
 
-    if (pos > vec->size)
-        return VEC_ERR_OUT_OF_RANGE;
+    if (pos > vec->size) return VEC_ERR_OUT_OF_RANGE;
+
+    // pos = vec->size is just a basic push back
+    if (pos == vec->size)
+    {
+        return vector_push_back(vec, value_ptr);
+    }
 
     if (vec->size >= vec->capacity)
     {
@@ -192,61 +219,58 @@ VectorStatus vector_insert(Vector *vec, size_t pos, const void *value_ptr)
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
             return VEC_ERR_ALLOC;
         }
+
         vec->data = new_data;
     }
 
-    vec->size++;
-    memmove(
-        (char *)vec->data + (pos * vec->elem_size) + vec->elem_size,
-        (char *)vec->data + (pos * vec->elem_size),
-        (vec->size - pos - 1) * vec->elem_size
-    );
-    memcpy(
-        (char *)vec->data + (pos * vec->elem_size),
-        value_ptr,
-        vec->elem_size
-    );
+    char *src_address = (char *)vec->data + (pos * vec->elem_size);
+    char *dest_address = (char *)vec->data + (pos * vec->elem_size) + vec->elem_size;
+    memmove(dest_address, src_address, vec->size++ * vec->elem_size);
+    memcpy(src_address, value_ptr, vec->elem_size);
 
     return VEC_OK;
 }
 
 VectorStatus vector_erase(Vector *vec, size_t pos)
 {
-    if (vec == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(1, vec);
+    if (status != VEC_OK) return status;
 
-    if (pos >= vec->size)
-        return VEC_ERR_OUT_OF_RANGE;
+    if (pos >= vec->size) return VEC_ERR_OUT_OF_RANGE;
 
-    memmove(
-        (char *)vec->data + (pos * vec->elem_size),
-        (char *)vec->data + (pos * vec->elem_size) + vec->elem_size,
-        (vec->size - pos - 1) * vec->elem_size
-    );
-    vec->size--;
+    char *dest_address = (char *)vec->data + (pos * vec->elem_size);
+    char *src_address = (char *)vec->data + (pos * vec->elem_size) + vec->elem_size;
+    memmove(dest_address, src_address,(vec->size-- - pos) * vec->elem_size);
 
-    if (vec->size <= vec->capacity/4 && vec->capacity > 4)
+    if (
+        vec->size <= vec->capacity/4 && 
+        vec->capacity > 4
+    )
     {
         vec->capacity /= 2;
+
         void *new_data = realloc(vec->data, vec->capacity * vec->elem_size);
         if (new_data == NULL)
         {
-            fprintf(stderr, "Fatal: Out of memory\n");
+            LOG_ERROR("Out of memory");
             return VEC_ERR_ALLOC;
         }
         vec->data = new_data;
     }
+
     return VEC_OK;
 }
 
-VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *old_value_ptr, void *new_value_ptr)
+VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, 
+                            void *old_value_ptr, void *new_value_ptr)
 {
-    LOG("Vector Replace\n");
-    if (vec == NULL || old_value_ptr == NULL || new_value_ptr == 0)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(3, vec, old_value_ptr, new_value_ptr);
+    if (status != VEC_OK) return status;
 
     if (
         init_pos >= vec->size ||
@@ -256,18 +280,11 @@ VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *
         return VEC_ERR_OUT_OF_RANGE;
 
     for (size_t i = init_pos; i <= end_pos; i++) {
-        if (
-            memcmp(
-                (char *)vec->data + (i * vec->elem_size),
-                old_value_ptr,
-                vec->elem_size
-            ) == 0)
+        char *target_address = (char *)vec->data + (i * vec->elem_size);
+
+        if (memcmp(target_address, old_value_ptr, vec->elem_size) == 0)
         {
-            memcpy(
-                (char *)vec->data + (i * vec->elem_size), 
-                new_value_ptr, 
-                vec->elem_size
-            );
+            memcpy(target_address, new_value_ptr, vec->elem_size);
         }
     }
 
@@ -276,29 +293,30 @@ VectorStatus vector_replace(Vector *vec, size_t init_pos, size_t end_pos, void *
 
 VectorStatus vector_get(Vector *vec, size_t pos, void *out)
 {
-    LOG("Vector Get\n");
-    if (vec == NULL || out == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, out);
+    if (status != VEC_OK) return status;
 
-    if (pos >= vec->size)
-        return VEC_ERR_OUT_OF_RANGE;
-    
+    if (pos >= vec->size) return VEC_ERR_OUT_OF_RANGE;
+
     memcpy(out, (char *)vec->data + (pos * vec->elem_size), vec->elem_size);
 
     return VEC_OK;
 }
 
-size_t vector_search(Vector *vec, void *value_ptr)
+ssize_t vector_search(Vector *vec, void *value_ptr)
 {
-    LOG("Vector Search\n");
-    if (check(vec, value_ptr) != VEC_OK)
-        return -1;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, value_ptr);
+    if (status != VEC_OK) return -1;
 
     for (size_t i = 0; i < vec->size; i++)
     {
-        if (memcmp((char *)vec->data + (i * vec->elem_size), value_ptr, vec->elem_size) == 0)
+        char *target_address = (char *)vec->data + (i * vec->elem_size);
+
+        if (memcmp(target_address, value_ptr, vec->elem_size) == 0)
         {
-            return i;
+            return (ssize_t)i;
         }
     }
     return -1;
@@ -306,22 +324,24 @@ size_t vector_search(Vector *vec, void *value_ptr)
 
 VectorStatus vector_contains(Vector *vec, void *value_ptr)
 {
-    LOG("Vector Contatains\n");
-    if (vec == NULL || value_ptr == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(2, vec, value_ptr);
+    if (status != VEC_OK) return status;
 
-    return vector_search(vec, value_ptr) != (size_t)-1 ? VEC_PRESENT : VEC_NOT_PRESENT;
+    return vector_search(vec, value_ptr) != (ssize_t)-1 ? 
+                            VEC_PRESENT : VEC_NOT_PRESENT;
 }
 
 VectorStatus vector_clear(Vector *vec)
 {
-    LOG("Vector Clear\n");
-    if (vec == NULL)
-        return VEC_ERR_NULL_ARG;
+    // Checking if the vector is valid or not
+    VectorStatus status = vector_input_check(1, vec);
+    if (status != VEC_OK) return status;
 
-    free(vec->data);
+    // going back to initial state.
+    // Also if I wanted I can simply destroy the vector and re-initialize a new one
     vec->data = NULL;
-    vec->capacity = 0;
+    vec->capacity = 4;
     vec->size = 0;
 
     return VEC_OK;
@@ -329,7 +349,6 @@ VectorStatus vector_clear(Vector *vec)
 
 VectorStatus vector_destroy(Vector *vec)
 {
-    LOG("Vector Destroyed\n");
     if (vec == NULL)
         return VEC_ERR_NULL_ARG;
 
