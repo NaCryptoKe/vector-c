@@ -1,5 +1,8 @@
 # Vector-c
 
+[![CI](https://github.com/NaCryptoKe/vector-c/actions/workflows/ci.yml/badge.svg)](https://github.com/NaCryptoKe/vector-c/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/NaCryptoKe/vector-c/actions/workflows/codeql.yml/badge.svg)](https://github.com/NaCryptoKe/vector-c/actions/workflows/codeql.yml)
+
 A general (type-agnostic) dynamic array implementation written in c.
 
 The library provides a simple vector-like container using `void *` and supports common operations such as insertion, removal, searching, and replacement.
@@ -41,6 +44,24 @@ Run:
 
 ```bash
 ./bin/app
+```
+
+Available targets:
+
+| Target | Purpose |
+|---|---|
+| `make` | Build the example application into `bin/app` |
+| `make test` | Build and run the test suite |
+| `make asan` | Run the test suite under ASan + UBSan |
+| `make asan-app` | Run the example app under ASan + UBSan |
+| `make check` | Everything above, in order |
+| `make clean` | Remove build output |
+
+To build with a different compiler, pass it on the command line:
+
+```bash
+make CC=clang
+make CC=clang check
 ```
 
 ## Usage
@@ -119,7 +140,50 @@ The vector grows when its capacity is exhausted and shrinks when the amount of u
 
 ## Testing
 
-Soon
+The test suite lives in [`tests/`](tests/) and is run with:
+
+```bash
+make test
+```
+
+It covers basic operations, front/back insertion and removal, `replace`,
+`search`/`contains`, error handling, and stress tests of **100,000** elements
+covering growth, pop ordering, and clear/reuse. The suite returns a non-zero
+exit status if any check fails, so it can be used directly as a CI gate.
+
+### Sanitizers
+
+Because manual memory management is the entire purpose of this library, every
+change is also verified under AddressSanitizer and UndefinedBehaviorSanitizer:
+
+```bash
+make asan       # full test suite under ASan + UBSan (leak detection on)
+make asan-app   # the example application under ASan + UBSan
+make check      # build + test + asan + asan-app
+```
+
+The current state is clean:
+
+```text
+$ make asan
+========================================
+[INFO] Test Summary
+========================================
+Passed: 10
+Failed: 0
+[INFO] ALL TESTS PASSED
+```
+
+No sanitizer diagnostics are reported, and LeakSanitizer reports no leaks.
+
+### Continuous integration
+
+Every push and pull request is built and tested on GitHub Actions with **both
+GCC and Clang** ([`ci.yml`](.github/workflows/ci.yml)). Each job runs the build,
+the test suite, both sanitizer targets, a `-Werror` gate with
+`-Wshadow -Wconversion -Wstrict-prototypes -Wmissing-prototypes`, and a check
+that `vector.h` is self-contained and C++-compatible. Static analysis runs
+separately via CodeQL ([`codeql.yml`](.github/workflows/codeql.yml)).
 
 ## Benchmark
 

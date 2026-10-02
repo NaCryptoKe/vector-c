@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ${{ matrix.compiler }} / c17
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc clang make
+
+      # NOTE: CC is passed on the make command line, not via `env:`.
+      # The Makefile assigns CC itself, and a makefile assignment beats an
+      # environment variable, so `env: CC` would silently keep using gcc.
+      - name: "Build (expected: zero warnings)"
+        run: |
+          make clean
+          make CC=${{ matrix.compiler }}
+
+      - name: Run test suite
+        run: make CC=${{ matrix.compiler }} test
+
+      - name: Run test suite under ASan + UBSan
+        run: make CC=${{ matrix.compiler }} asan
+
+      - name: Run smoke app under ASan + UBSan
+        run: make CC=${{ matrix.compiler }} asan-app
+
+      - name: Strict warnings gate (-Werror)
+        run: |
+          ${{ matrix.compiler }} -std=c17 \
+            -Wall -Wextra -Wpedantic -Wshadow -Wconversion \
+            -Wstrict-prototypes -Wmissing-prototypes -Werror \
+            -Iinclude -c src/vector.c -o /tmp/vector_warnings.o
+
+      - name: Header is self-contained and C++-compatible
+        run: |
+          printf '#include "vector.h"\nint main(void){return 0;}\n' > /tmp/hdr.c
+          ${{ matrix.compiler }} -std=c17 -Wall -Wextra -Wpedantic \
+            -Iinclude -c /tmp/hdr.c -o /tmp/hdr.o
+          if command -v g++ >/dev/null; then
+            printf '#include "vector.h"\nint main(){return 0;}\n' > /tmp/hdr.cpp
+            g++ -std=c++17 -Wall -Wextra -Iinclude -c /tmp/hdr.cpp -o /tmp/hdr_cpp.o
+          fi
