@@ -1,0 +1,28 @@
+# Build artifacts
+bin/
+obj/
+*.o
+*.d
+*.a
+*.exe
+*.so
+
+# Debugging
+core
+core.*
+gdb.cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Roadmap / review documents (local planning notes, not part of the library)
+roadmap.md
+PORTFOLIO_REVIEW.md
+PORTFOLIO_REVIEW_SUPERSEDED.md
