@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # `build-mode: none` is the documented configuration for C/C++, which
       # CodeQL analyses without a build step.
